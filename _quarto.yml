@@ -7,9 +7,12 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - R_Dashboard.Rmd
-      - Python_Dashboard.qmd
-      - Slides.qmd
+      - href: R_Dashboard.Rmd
+        text: R Dashboard
+      - href: Python_Dashboard.qmd
+        text: Python Dashboard
+      - href: Slides.qmd
+        text: Slides
 
 format:
   html:
