@@ -1,0 +1,658 @@
+---
+title: "Parachain Health"
+subtitle: "First Five Auctions"
+format: revealjs
+editor: visual
+---
+
+## Introduction
+
+This presentation supplements two Parachain Health dashboards for *Acala*, *Astar*, *Clover*, *Moonbeam*, and *Parallel*. Some of the metrics displayed are as follows:
+
+Shorter-term metrics (most recent 100,000 blocks):
+
+-   Block production time & number of events per block
+
+Longer-term metrics (7 days and 30 days):
+
+-   Number of active accounts, number and value of transfers, number of extrinsics, & value of XCM transfers
+
+## My Background
+
+Since February 2022 I have been working as a Data Analytics Engineer for [Acala Network](https://acala.network/).
+
+-   The dashboards I built for Acala & Karura are still available at [this url](https://acala.rogerjbos.com/) and the code is available on Acala's [Github](https://github.com/AcalaNetwork/karura-reports).
+-   The data was extracted from the [Subscan API](https://support.subscan.io/#introduction) and various [Subquery](https://subquery.network/) projects, using an [R package](https://github.com/rogerjbos/subscanr) I wrote that has functions for Subscan, SubQuery, and Polkaholic.
+-   Many of the dashboards I created for Acala do use some Python code, most notably [aUSD Issuance](https://acala.rogerjbos.com/dashboard_ausd.html), [Karura Liquidations](https://acala.rogerjbos.com/liquidation_karura.html), and [Tokens](https://acala.rogerjbos.com/tokens.html#ksm).
+
+## Data Source - Polkaholic
+
+*I use the [Polkaholic API](https://polkaholic.io/#chains) for this project since I wanted to try out a new data source, they support all the parachains, and they have an interesting set of data available.*
+
+Initially, I intended to use [Subsquid](https://subsquid.io/) since I was less familiar with that project and wanted to learn more about it.
+
+Like *SubQuery*, *Subsquid* usually requires building a TypeScript project to custom index the data, but the *Subsquid* team created many [Archive](https://app.subsquid.io/aquarium/archives) projects as part of the `firesquid` offering that contain indexed raw blockchain data. Unfortunately, I discovered that they don't have archives for all parachains, including Astar, Clover and Parallel, so I was not able to use *Subsquid*.
+
+## Deliverables
+
+There are three deliverables to support this presentation:
+
+-   A [Quarto](https://quarto.org/) dashboard written in Python. This is a static HTML file that can be viewed offline and emailed to anyone.
+
+-   A [Rmarkdown](https://rmarkdown.rstudio.com/) dashboard written in R. This is also a static HTML file that can be viewed offline and emailed to anyone.
+
+-   A [Shiny](https://sagepoint.shinyapps.io/parachain_health/) that replicates the content of the Rmarkdown dashboard, but also adds interactivity so you can add/remove parachains to be included in the dashboard. The only downside is that it has to be hosted on a server so there is some extra overhead associated with that.
+
+```{r}
+library(reticulate)
+library(kableExtra)
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Show hidden code"
+
+import pandas as pd
+from IPython.display import display, Markdown
+from tabulate import tabulate
+import time
+import datetime
+import requests
+import json
+import seaborn as sns
+import matplotlib.pyplot as plt
+pd.set_option('display.max_columns', None)
+
+def getPolkaholicEvents(chain, nobs = 100, module = "", call = "", startDate = "", endDate = ""):
+  API_ENDPOINT = f"https://api.polkaholic.io/search/events?limit={nobs}"
+  header = {"Authorization": "32579f3ad8360ceff02f1e077384eec9"}
+  if module != "" and call != "":
+    data = {"chainIdentifier": chain, "section": module, "method": call, "dateStart": startDate, "dateEnd": endDate}
+  elif module != "" and call == "":
+    data = {"chainIdentifier": chain, "section": module, "dateStart": startDate, "dateEnd": endDate}
+  else: 
+    data = {"chainIdentifier": chain, "dateStart": startDate, "dateEnd": endDate}
+  r = requests.post(url = API_ENDPOINT, headers = header, data = data)
+  out = pd.DataFrame(r.json())
+  out['Date'] = pd.to_datetime(out['blockTS'],unit='s')
+  return out
+
+# Define the parameters
+startDate = (datetime.date.today() - datetime.timedelta(days = 14)).strftime("%Y-%m-%d")
+endDate = (datetime.date.today() - datetime.timedelta(days = 1)).strftime("%Y-%m-%d")
+nobs = 100000 # This (100,) is actually the max you can get in one call
+module = ""
+call = ""
+
+# Pull the data for each parachain, sleeping for 3 seconds in between chains (just in case)
+acala = getPolkaholicEvents(chain = "acala", nobs = nobs, module = module, call = call, startDate = startDate, endDate = endDate)
+time.sleep(3)
+astar = getPolkaholicEvents(chain = "astar", nobs = nobs, module = module, call = call, startDate = startDate, endDate = endDate)
+time.sleep(3)
+clover = getPolkaholicEvents(chain = "clover", nobs = nobs, module = module, call = call, startDate = startDate, endDate = endDate)
+time.sleep(3)
+moonbeam = getPolkaholicEvents(chain = "moonbeam", nobs = nobs, module = module, call = call, startDate = startDate, endDate = endDate)
+time.sleep(3)
+parallel = getPolkaholicEvents(chain = "parallel", nobs = nobs, module = module, call = call, startDate = startDate, endDate = endDate)
+
+# Combine all the data into one DataFrame
+comb = pd.concat([acala, astar, clover, moonbeam, parallel])
+
+```
+
+## Date and block ranges
+
+Since we defined our data by the number of events (100,000), the date range and number of blocks will vary by parachain.  For *Astar* and *Moonbeam* this ends up being only a few hours, but for *Acala* and *Clover* it represents 4 to 6 days.
+
+```{python}
+#| label: tbl-summary
+#| tbl-cap: Summary
+#| code-fold: true
+#| code-summary: "Show hidden code"
+
+summary = pd.DataFrame([{'chainName': k,
+                        'minDate': v.Date.min(),
+                        'maxDate': v.Date.max(),
+                        'minBlock': v.blockNumber.min(),
+                        'maxBlock': v.blockNumber.max()}
+                       for k,v in comb.groupby(['chainName'])])
+summary['numBlocks'] = summary['maxBlock'] - summary['minBlock']
+summary = pd.DataFrame(summary)
+
+# Markdown(tabulate(
+#   pd.DataFrame(summary),
+#   headers=["Parachain","Earliest Date", "Latest Date", "Earliest Block", "Latest Block", "Number of Blocks"]
+# ))
+
+```
+
+::: {style="font-size: .5em; text-align: center"}
+```{r}
+kbl(py$summary, booktabs = TRUE, format.args = list(big.mark = ","), escape = FALSE, align = c('l',rep('r', 5))) %>%
+  kable_styling(latex_options = "striped", full_width = TRUE)
+```
+:::
+
+## Network utilization
+
+*Aster* and *Moonbeam* have the highest network utilization, based on the average number of events per block.  *Acala* has paused most operations since August 14th, so that explains it's low number.  *Clover* has the smallest number of events per block despite having the largest number of wallets. 
+
+::: {style="font-size: .5em; text-align: center"}
+```{python}
+#| label: tbl-avg-events-per-block
+#| tbl-cap: Average Events Per Block
+#| code-fold: true
+#| code-summary: "Show hidden code"
+
+events_per_block = comb.groupby(['chainName','blockNumber'])['eventID'].count()
+avg_events_per_block = events_per_block.groupby(['chainName']).mean().round(1)
+avg_events_per_block = pd.DataFrame(avg_events_per_block).reset_index()
+avg_events_per_block = avg_events_per_block.rename(columns={"chainName": "Parachain", "eventID": "Events"})
+
+# Markdown(tabulate(
+#   pd.DataFrame(avg_events_per_block),
+#   headers=["Parachain","Average number of events per block"]
+# ))
+
+```
+:::
+
+```{r}
+kbl(py$avg_events_per_block, booktabs = TRUE, format.args = list(big.mark = ","), escape = FALSE, align = c('l',rep('r', 5))) %>%
+  kable_styling(latex_options = "striped", full_width = TRUE)
+```
+
+## Boxplot of number of events per block
+
+This box plot shows the outliers in additional to the bulk of the observations and *Moonbeam* leads the way with a lot of blocks with high volume.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Show hidden code"
+
+epb = pd.DataFrame(events_per_block).reset_index()
+epb = epb.rename(columns={"chainName": "Parachain", "blockNumber": "Block", "eventID": "Events"})
+sns.boxplot(data=epb, x="Events", y="Parachain")
+plt.show()
+
+```
+
+## Block Time Statistics
+
+The max block time values make it look like *Astar* and *Moonbean* are much more consistent than the other parachains, but the average block time is virtually identical for all the parachains, showing that there are very few blocks that take a long time to produce.
+
+```{python}
+#| label: tbl-max-block-time
+#| tbl-cap: Max Block Time
+#| code-fold: true
+#| code-summary: "Show hidden code"
+
+block_duration = comb.groupby(['chainName','blockNumber'])['Date'].min().diff()
+# Remove Nat observations
+block_duration = block_duration.dropna()
+
+mb = pd.DataFrame(block_duration.dt.seconds).reset_index()
+mb = mb.rename(columns={"chainName": "Parachain", "blockNumber": "Block", "Date": "Seconds"})
+# remove four errant observations with block time over 80,000 seconds??
+mb = mb[mb['Seconds'] < 999]
+
+max_block_time = pd.DataFrame([{'Parachain': k,
+                        'minBlockTime': v.Seconds.min(),
+                        'maxBlockTime': v.Seconds.max(),
+                        'avgBlockTime': v.Seconds.mean().round(1)}
+                       for k,v in mb.groupby(['Parachain'])])
+max_block_time = pd.DataFrame(max_block_time)
+
+# Markdown(tabulate(
+#   pd.DataFrame(max_block_time),
+#   headers=["Parachain","Min Block Time","Max Block Time","Average Block Time"]
+# ))
+
+```
+
+::: {style="font-size: .5em; text-align: center"}
+```{r}
+kbl(py$max_block_time, booktabs = TRUE, format.args = list(big.mark = ","), escape = FALSE, align = c('l',rep('r', 5))) %>%
+  kable_styling(latex_options = "striped", full_width = TRUE)
+```
+:::
+
+## Slow Block Production
+
+The percentage of blocks that take longer than 13 seconds to produce doesn't vary much by parachain, although *Clover* is the slowest despite having a small number of events per block.
+
+```{python}
+#| label: tbl-slow-blocks
+#| tbl-cap: Slow Block Production
+#| code-fold: true
+#| code-summary: "Show hidden code"
+
+# Find slow block production
+sb = pd.DataFrame(block_duration.dt.seconds).reset_index()
+sb = sb.rename(columns={"chainName": "Parachain", "blockNumber": "Block", "Date": "Seconds"})
+
+slow_blocks = pd.DataFrame([{'Parachain': k,
+                        'N': v.Seconds.count(),
+                        'slow': v.Seconds[v.Seconds > 12].count()}
+                       for k,v in sb.groupby(['Parachain'])])
+slow_blocks['pct_slow'] = ((slow_blocks['slow'] / slow_blocks['N']) * 100).round(1)
+slow_blocks = pd.DataFrame(slow_blocks).rename(columns={"N": "Total", "pct_slow": "Percent"})
+
+```
+
+::: {style="font-size: .5em; text-align: center"}
+```{r}
+kbl(py$slow_blocks, booktabs = TRUE, format.args = list(big.mark = ","), escape = FALSE, align = c('l',rep('r', 5))) %>%
+  kable_styling(latex_options = "striped", full_width = TRUE)
+```
+:::
+
+## Boxplot of block duration times
+
+This plot looks really bad, but it is actually very accurate.  The thin line right at 12 shows that there are very few blocks that are produced faster or slower than 12 seconds.  Each diamond shows the outlines, so we can clearly see how few observations there are.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Show hidden code"
+
+bd = pd.DataFrame(block_duration.dt.seconds).reset_index()
+bd = bd.rename(columns={"chainName": "Parachain", "blockNumber": "Block", "Date": "Seconds"})
+bd = bd[bd['Seconds'] > 0]
+bd = bd[bd['Seconds'] < 30]
+sns.boxplot(data=bd, x="Seconds", y="Parachain")
+plt.show()
+
+```
+
+## Selected Events by Module
+
+*Astar* looks goon on this chart because around 24% of it's events are EVM related, as opposed to more generic events such as system and balance.  Since *Acala* is mostly paused (but still producing blocks) 70% of events are system and *Clover* is over 90% system.
+
+```{python}
+#| label: tbl-count-by-section
+#| tbl-cap: Number of Events by Module
+#| code-fold: true
+#| code-summary: "Show hidden code"
+
+from IPython.display import display, Markdown
+from tabulate import tabulate
+sb = pd.DataFrame(block_duration.dt.seconds).reset_index()
+sb = sb.rename(columns={"chainName": "Parachain", "blockNumber": "Block", "Date": "Seconds"})
+
+slow_blocks = pd.DataFrame([{'Parachain': k,
+                        'Total': v.Seconds.count(),
+                        'slow': v.Seconds[v.Seconds > 12].count()}
+                       for k,v in sb.groupby(['Parachain'])])
+
+count_by_chain = comb.groupby(['chainName'])['eventID'].count()
+count_by_chain = pd.DataFrame(count_by_chain).reset_index().rename(columns={"chainName": "Parachain", "eventID": "Total"})
+
+count_by_section = comb.groupby(['chainName','section'])['eventID'].count()
+count_by_section = pd.DataFrame(count_by_section).reset_index().rename(columns={"chainName": "Parachain", "section": "Module", "eventID": "Events"})
+count_by_section = count_by_section.merge(count_by_chain, on = "Parachain")
+count_by_section['Percent'] = (count_by_section['Events'] / count_by_section['Total']) * 100
+count_by_section = pd.DataFrame(count_by_section[count_by_section['Percent'] > 10])
+
+# Markdown(tabulate(
+#   pd.DataFrame(count_by_section[count_by_section['Percent'] > 20]),
+#   headers=["Parachain","Module","Events","Total","Percent"]
+# ))
+
+```
+
+::: {style="font-size: .5em; text-align: center"}
+```{r}
+kbl(py$count_by_section, booktabs = TRUE, format.args = list(big.mark = ","), escape = FALSE, align = c('l',rep('r', 5))) %>%
+  kable_styling(latex_options = "striped", full_width = TRUE)
+```
+:::
+
+```{r global, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  comment = "#>"
+)
+
+library(ggplot2)
+library(plotly)
+library(kableExtra)
+library(formattable)
+library(flexdashboard)
+library(DT)
+library(subscanr)
+
+# Helper function to concat
+`%+%` <- function(a, b) paste0(a, b)
+
+bgcolor <- '#E0EEE0'
+
+chains <- c("acala", "moonbeam", "astar", "parallel", "clover")
+
+overview <- get_polkaholic_chains()
+
+d <- list()
+for (tag in chains) {
+  tmp <- get_polkaholic_chainlog(tag)
+  tmp$Parachain <- tools::toTitleCase(tag)
+  tmp[, Date := as.Date(logDT)]
+  d[[tag]] <- tmp
+}
+daily <- rbindlist(d)
+daily <- daily[, c("Parachain", "Date", "numExtrinsics", "numEvents", "numTransfers", "numSignedExtrinsics",
+                   "valueTransfersUSD", "numTransactionsEVM", "numAccountsActive", "numAddresses", "fees",
+                   "numXCMTransfersIn", "numXCMMessagesIn", "numXCMTransfersOut", "numXCMMessagesOut",
+                   "valXCMTransferIncomingUSD", "valXCMTransferOutgoingUSD")]
+
+# names(daily)
+
+```
+
+## Selected stats for entire history
+
+This is a nice summary table provided from the Polkaholic data.  For each column, the median value is calculated and observations [below median are colored in red]{style="color:#cc0000"} and observations [above median are color in green]{style="color:green"}.
+
+::: {style="font-size: .5em; text-align: center"}
+```{r entireHistory}
+myFormat <- function(x, prefix = "", suffix = "") prefix %+% (x %>% as.numeric %>% round(2) %>% format(nsmall=1, big.mark=",")) %+% suffix
+
+newNames <- c("Parachain","Icon","Active Accts","Transfers","Transfers USD","Extrinsics","Incoming XCM USD","Outgoing XCM USD")
+
+overview1 <- overview[id %in% chains, .(chainName, "", numAccountsActive, numTransfers, valueTransfersUSD, numExtrinsics,valXCMTransferIncomingUSD,valXCMTransferOutgoingUSD)]
+setnames(overview1, newNames)
+
+prefix <- c("","","","","","")
+
+for (i in 1:6) {
+  tag <- names(overview1)[i + 2]
+  v <- overview1[[tag]]
+  m <- median(v)
+  overview1[[tag]] <- cell_spec(myFormat(v, prefix[i]), color = ifelse(v > m, "green", ifelse(v < m, "red", "black")))
+}
+
+kbl(overview1, booktabs = TRUE, format.args = list(big.mark = ","), escape = FALSE, align = c('l','c',rep('r', 6))) %>%
+  kable_styling(latex_options = "striped", full_width = TRUE) %>%
+  column_spec(1, link = overview[id %in% chains, parachainsURL]) %>%
+  column_spec(2, image = spec_image(path = overview[id %in% chains, iconUrl], width = 70, height = 70))
+
+```
+:::
+
+## Selected stats for last 7 days
+
+This chart shows the same stats for the last 7 days and it is clear that *Moonbeam* is leading in every measure, followed by *Astar*.  *Clover* is not showing near as much activity.
+
+::: {style="font-size: .5em; text-align: center"}
+```{r 7day}
+overview7 <- overview[id %in% chains, .(chainName, "", numAccountsActive7d, numTransfers7d, valueTransfersUSD7d, numExtrinsics7d, numXCMTransferIncoming7d, numXCMTransferOutgoing7d)]
+setnames(overview7, newNames)
+
+for (i in 1:6) {
+  tag <- names(overview7)[i + 2]
+  v <- overview7[[tag]]
+  m <- median(v)
+  overview7[[tag]] <- cell_spec(myFormat(v, prefix[i]), color = ifelse(v > m, "green", ifelse(v < m, "red", "black")))
+}
+
+kbl(overview7, booktabs = TRUE, format.args = list(big.mark = ","), escape = FALSE, align = c('l','c',rep('r', 6))) %>%
+  kable_styling(latex_options = "striped", full_width = TRUE) %>%
+  column_spec(1, link = overview[id %in% chains, parachainsURL]) %>%
+  column_spec(2, image = spec_image(path = overview[id %in% chains, iconUrl], width = 70, height = 70))
+
+```
+:::
+
+## Selected stats for last 30 days
+
+The 30 day picture looks the same, with *Moonbeam* still leading in every measure, followed by *Astar*.  *Clover* is not showing near as much activity.
+
+::: {style="font-size: .5em; text-align: center"}
+```{r 30day}
+
+overview30 <- overview[id %in% chains, .(chainName, "", numAccountsActive30d, numTransfers30d, valueTransfersUSD30d, numExtrinsics30d, numXCMTransferIncoming30d, numXCMTransferOutgoing30d)]
+setnames(overview30, newNames)
+
+for (i in 1:6) {
+  tag <- names(overview30)[i + 2]
+  v <- overview30[[tag]]
+  m <- median(v)
+  overview30[[tag]] <- cell_spec(myFormat(v, prefix[i]), color = ifelse(v > m, "green", ifelse(v < m, "red", "black")))
+}
+
+kbl(overview30, booktabs = TRUE, format.args = list(big.mark = ","), escape = FALSE, align = c('l','c',rep('r', 6))) %>%
+  kable_styling(latex_options = "striped", full_width = TRUE) %>%
+  column_spec(1, link = overview[id %in% chains, parachainsURL]) %>%
+  column_spec(2, image = spec_image(path = overview[id %in% chains, iconUrl], width = 70, height = 70))
+
+```
+:::
+
+## Number of Addresses
+
+*Astar* has been leading in the number of addresses for a few months now, and saw a nice bump up in the middle of August (likely  error mint related).  *Moonbean* is showing steady growth that should be sustainable.  
+
+```{r addr}
+
+addr <- daily[!is.na(numAddresses), .(Date, Parachain, numAddresses)]
+addr[, numAddresses := numAddresses / 1e3]
+p <- ggplot(addr, aes(x=Date, y=numAddresses, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Total Addresses over Time", x = "", y = "Addresses (in thousands)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p)
+
+```
+
+## Number of Active Accounts
+
+*Moonbeam* is leading in active accounts.  *Astar* is also showing some good activity.
+
+```{r active}
+
+active <- daily[!is.na(numAccountsActive), .(Date, Parachain, numAccountsActive)]
+active[, numAccountsActive := numAccountsActive / 1e3]
+p <- ggplot(active, aes(x=Date, y=numAccountsActive, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Daily Active Accounts", x = "", y = "Active Accounts (in thousands)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p)
+
+```
+
+## Number of Transfers
+
+*Moonbeam* and *Astar* show the most volatility in the number of transfers per day, but the general trend is flat for most of the parachains.  *Acala* transfers fell sharply once they paused most operations.  
+
+```{r transfers}
+
+transfers <- daily[!is.na(numTransfers), .(Date, Parachain, numTransfers)]
+transfers[, numTransfers := numTransfers / 1e3]
+p <- ggplot(transfers, aes(x=Date, y=numTransfers, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Number of Transfers over Time", x = "", y = "Transfers (in thousands)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p)
+
+```
+
+## Value of Transfers in USD
+
+In this chart the spikes for *Acala* are so large they obscure the activity in the other parachains.  For that reason we repeat the chart on the next slide excluding *Acala*.
+
+```{r valueTransfersUSD}
+
+valueTransfersUSD <- daily[!is.na(valueTransfersUSD), .(Date, Parachain, valueTransfersUSD)]
+valueTransfersUSD[, valueTransfersUSD := valueTransfersUSD / 1e3]
+p <- ggplot(valueTransfersUSD, aes(x=Date, y=valueTransfersUSD, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Value of Transfers in USD over Time", x = "", y = "Value of Transfers in USD (in thousands)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p)
+
+```
+
+## Value of Transfers in USD
+
+Excluding *Acala*, *Parallel* had a big spike on August 18th.  *Astar* and *Moonbeam* are showing good, consistent transfer activity.  
+
+```{r valueTransfersUSD2}
+
+p2 <- ggplot(valueTransfersUSD[Parachain != "Acala"], aes(x=Date, y=valueTransfersUSD, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Value of Transfers in USD over Time (excluding Acala)", x = "", y = "Value of Transfers in USD (in thousands)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p2)
+
+```
+
+## Number of Events
+
+*Astar* was leading the way in June & July, but then volume fell off.  *Moonbeam* shows good, consistent volume of around 500 events per day.
+
+```{r Events}
+
+Events <- daily[!is.na(numEvents), .(Date, Parachain, numEvents)]
+Events[, numEvents := numEvents / 1e3]
+p <- ggplot(Events, aes(x=Date, y=numEvents, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Number of Events over Time", x = "", y = "Events (in thousands)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p)
+
+```
+
+## Number of Extrinsics
+
+The number of extrinsics shows pretty much the same picture as the number of events.
+
+```{r Extrinsics}
+
+Extrinsics <- daily[!is.na(numExtrinsics), .(Date, Parachain, numExtrinsics)]
+Extrinsics[, numExtrinsics := numExtrinsics / 1e3]
+p <- ggplot(Extrinsics, aes(x=Date, y=numExtrinsics, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Number of Extrinsics over Time", x = "", y = "Extrinsics (in thousands)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p)
+
+```
+
+## Number of EVM Transactions
+
+As in many of the previous slides, *Moonbeam* and *Astar* lead the way in the number of EVM transactions.
+
+```{r TransactionsEVM}
+
+TransactionsEVM <- daily[!is.na(numTransactionsEVM), .(Date, Parachain, numTransactionsEVM)]
+TransactionsEVM[, numTransactionsEVM := numTransactionsEVM / 1e3]
+p <- ggplot(TransactionsEVM, aes(x=Date, y=numTransactionsEVM, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Number of EVM Transactions over Time", x = "", y = "EVM Transactions (in thousands)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p)
+
+```
+
+## Fees in Native Tokens
+
+*Clover* had a spike in fees on June 23rd.  Due to this spike we will repeat this chart on the next slide excluding *Clover*.
+
+```{r fees}
+
+fees <- daily[!is.na(fees), .(Date, Parachain, fees)]
+fees[, fees := as.numeric(fees)]
+p <- ggplot(fees, aes(x=Date, y=fees, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Total Fees over Time", x = "", y = "Fees (in native tokens)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p)
+
+```
+
+## Fees in Native Tokens
+(excluding Clover)
+
+*Moonbean* has the fees, on average, but *Parallel* has been seeing steady fees since August.
+
+```{r fees2}
+
+p2 <- ggplot(fees[Parachain != "Clover"], aes(x=Date, y=fees, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Total Fees over Time (excluding Clover)", x = "", y = "Fees (in native tokens)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p2)
+
+```
+
+## Value of Incoming XCM Transfer
+
+XCM Transfers were driven by the *Acala* error mint, with *Acala* seeing outflows and *Moonbeam* see inflows of exactly equal magnitude.  Those peaks are not likely to be repeated. 
+
+```{r valXCMTransferIncomingUSD}
+
+valXCMTransferIncomingUSD <- daily[!is.na(valXCMTransferIncomingUSD), .(Date, Parachain, valXCMTransferIncomingUSD)]
+valXCMTransferIncomingUSD[, valXCMTransferIncomingUSD := valXCMTransferIncomingUSD / 1e3]
+p <- ggplot(valXCMTransferIncomingUSD, aes(x=Date, y=valXCMTransferIncomingUSD, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Value Incoming XCM Transfer USD over Time", x = "", y = "Value Incoming XCM Transfer USD (in thousands)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p)
+
+```
+
+## Value of Outgoing XCM Transfer
+
+XCM Transfers were driven by the *Acala* error mint, with *Acala* seeing outflows and *Moonbeam* see inflows of exactly equal magnitude.  Those peaks are not likely to be repeated. 
+
+```{r valXCMTransferOutgoingUSD}
+
+valXCMTransferOutgoingUSD <- daily[!is.na(valXCMTransferOutgoingUSD), .(Date, Parachain, valXCMTransferOutgoingUSD)]
+valXCMTransferOutgoingUSD[, valXCMTransferOutgoingUSD := valXCMTransferOutgoingUSD / 1e3]
+p2 <- ggplot(valXCMTransferOutgoingUSD, aes(x=Date, y=valXCMTransferOutgoingUSD, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Value Outgoing XCM Transfer USD over Time", x = "", y = "Value Outgoing XCM Transfer USD (in thousands)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p2)
+
+```
+
+## Conclusion
+
+Prior to this project, I knew *Moonbeam* was a top network and these dashboards have proven that to be the case.  I didn't know much about *Astar*, but the network performance looks pretty impressive.  *Clover* is the network I would be most worried about based on performance and activity.  *Parallel* didn't really stand out in many of the charts, but it is showing some pretty good fee revenue in the past month.  *Acala* is suffering a problem which was entirely self inflicted and is facing a long recovery to rebuild trust.

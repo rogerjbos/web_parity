@@ -1,0 +1,403 @@
+---
+title: "Parachain Health Stats"
+output:
+  flexdashboard::flex_dashboard:
+    theme:
+      version: 4
+      navbar-bg: "#E6007A"
+    orientation: rows
+    vertical_layout: scroll
+    social: menu
+    source_code: embed
+flexdashboard::valueBox(): 
+orientation: rows 
+source_code: embed 
+vertical_layout: fill
+---
+
+```{css custom1, echo=FALSE}
+.dataTables_scrollBody {
+    max-height: 100% !important;
+}
+```
+
+```{r global, include=FALSE}
+library(knitr)
+knitr::opts_chunk$set(
+  message = FALSE,
+  warning = FALSE,
+  comment = "#>"
+)
+
+library(ggplot2)
+library(plotly)
+library(kableExtra)
+library(formattable)
+library(flexdashboard)
+library(DT)
+library(subscanr)
+
+# Helper function to concat
+`%+%` <- function(a, b) paste0(a, b)
+
+bgcolor <- '#E0EEE0'
+
+chains <- c("acala", "moonbeam", "astar", "parallel", "clover")
+
+overview <- get_polkaholic_chains()
+
+d <- list()
+for (tag in chains) {
+  tmp <- get_polkaholic_chainlog(tag)
+  tmp$Parachain <- tools::toTitleCase(tag)
+  tmp[, Date := as.Date(logDT)]
+  d[[tag]] <- tmp
+}
+daily <- rbindlist(d)
+daily <- daily[, c("Parachain", "Date", "numExtrinsics", "numEvents", "numTransfers", "numSignedExtrinsics",
+                   "valueTransfersUSD", "numTransactionsEVM", "numAccountsActive", "numAddresses", "fees",
+                   "numXCMTransfersIn", "numXCMMessagesIn", "numXCMTransfersOut", "numXCMMessagesOut",
+                   "valXCMTransferIncomingUSD", "valXCMTransferOutgoingUSD")]
+
+# names(daily)
+
+```
+
+# Overview {.tabset}
+
+Row
+----
+
+### Selected stats for entire history
+
+```{r entireHistory}
+myFormat <- function(x, prefix = "", suffix = "") prefix %+% (x %>% as.numeric %>% round(2) %>% format(nsmall=1, big.mark=",")) %+% suffix
+
+newNames <- c("Parachain","Icon","Active Accts","Transfers","Transfers USD","Extrinsics","Incoming XCM USD","Outgoing XCM USD")
+
+overview1 <- overview[id %in% chains, .(chainName, "", numAccountsActive, numTransfers, valueTransfersUSD, numExtrinsics,valXCMTransferIncomingUSD,valXCMTransferOutgoingUSD)]
+setnames(overview1, newNames)
+
+
+prefix <- c("","","","","","")
+
+for (i in 1:6) {
+  tag <- names(overview1)[i + 2]
+  v <- overview1[[tag]]
+  m <- median(v)
+  overview1[[tag]] <- cell_spec(myFormat(v, prefix[i]), color = ifelse(v > m, "green", ifelse(v < m, "red", "black")))
+}
+
+kbl(overview1, booktabs = TRUE, format.args = list(big.mark = ","), escape = FALSE, align = c('l','c',rep('r', 6))) %>%
+  kable_styling(latex_options = "striped", full_width = TRUE) %>%
+  column_spec(1, link = overview[id %in% chains, parachainsURL]) %>%
+  column_spec(2, image = spec_image(path = overview[id %in% chains, iconUrl], width = 50, height = 50))
+
+```
+
+Row
+----
+
+### Selected stats for last 7 days
+
+```{r 7day}
+overview7 <- overview[id %in% chains, .(chainName, "", numAccountsActive7d, numTransfers7d, valueTransfersUSD7d, numExtrinsics7d, numXCMTransferIncoming7d, numXCMTransferOutgoing7d)]
+setnames(overview7, newNames)
+
+for (i in 1:6) {
+  tag <- names(overview7)[i + 2]
+  v <- overview7[[tag]]
+  m <- median(v)
+  overview7[[tag]] <- cell_spec(myFormat(v, prefix[i]), color = ifelse(v > m, "green", ifelse(v < m, "red", "black")))
+}
+
+kbl(overview7, booktabs = TRUE, format.args = list(big.mark = ","), escape = FALSE, align = c('l','c',rep('r', 6))) %>%
+  kable_styling(latex_options = "striped", full_width = TRUE) %>%
+  column_spec(1, link = overview[id %in% chains, parachainsURL]) %>%
+  column_spec(2, image = spec_image(path = overview[id %in% chains, iconUrl], width = 50, height = 50))
+
+```
+
+Row
+----
+
+### Selected stats for last 30 days
+
+```{r 30day}
+
+overview30 <- overview[id %in% chains, .(chainName, "", numAccountsActive30d, numTransfers30d, valueTransfersUSD30d, numExtrinsics30d, numXCMTransferIncoming30d, numXCMTransferOutgoing30d)]
+setnames(overview30, newNames)
+
+for (i in 1:6) {
+  tag <- names(overview30)[i + 2]
+  v <- overview30[[tag]]
+  m <- median(v)
+  overview30[[tag]] <- cell_spec(myFormat(v, prefix[i]), color = ifelse(v > m, "green", ifelse(v < m, "red", "black")))
+}
+
+kbl(overview30, booktabs = TRUE, format.args = list(big.mark = ","), escape = FALSE, align = c('l','c',rep('r', 6))) %>%
+  kable_styling(latex_options = "striped", full_width = TRUE) %>%
+  column_spec(1, link = overview[id %in% chains, parachainsURL]) %>%
+  column_spec(2, image = spec_image(path = overview[id %in% chains, iconUrl], width = 50, height = 50))
+
+```
+
+
+# Charts {.tabset}
+
+Row
+----
+
+### Number of Addresses
+
+```{r addr}
+
+addr <- daily[!is.na(numAddresses), .(Date, Parachain, numAddresses)]
+addr[, numAddresses := numAddresses / 1e3]
+p <- ggplot(addr, aes(x=Date, y=numAddresses, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Total Addresses over Time", x = "", y = "Addresses (in thousands)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p)
+
+```
+
+Row
+----
+
+### Number of Active Accounts
+
+```{r active}
+
+active <- daily[!is.na(numAccountsActive), .(Date, Parachain, numAccountsActive)]
+active[, numAccountsActive := numAccountsActive / 1e3]
+p <- ggplot(active, aes(x=Date, y=numAccountsActive, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Daily Active Accounts", x = "", y = "Active Accounts (in thousands)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p)
+
+```
+
+Row
+----
+
+### Number of Transfers
+
+```{r transfers}
+
+transfers <- daily[!is.na(numTransfers), .(Date, Parachain, numTransfers)]
+transfers[, numTransfers := numTransfers / 1e3]
+p <- ggplot(transfers, aes(x=Date, y=numTransfers, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Number of Transfers over Time", x = "", y = "Transfers (in thousands)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p)
+
+```
+
+Row
+----
+
+### Value of Transfers in USD
+
+```{r valueTransfersUSD}
+
+valueTransfersUSD <- daily[!is.na(valueTransfersUSD), .(Date, Parachain, valueTransfersUSD)]
+valueTransfersUSD[, valueTransfersUSD := valueTransfersUSD / 1e3]
+p <- ggplot(valueTransfersUSD, aes(x=Date, y=valueTransfersUSD, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Value of Transfers in USD over Time", x = "", y = "Value of Transfers in USD (in thousands)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p)
+
+```
+
+Row
+----
+
+### Value of Transfers in USD (excluding Acala)
+
+```{r valueTransfersUSD2}
+
+p2 <- ggplot(valueTransfersUSD[Parachain != "Acala"], aes(x=Date, y=valueTransfersUSD, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Value of Transfers in USD over Time (excluding Acala)", x = "", y = "Value of Transfers in USD (in thousands)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p2)
+
+```
+
+Row
+----
+
+### Number of Events
+
+```{r Events}
+
+Events <- daily[!is.na(numEvents), .(Date, Parachain, numEvents)]
+Events[, numEvents := numEvents / 1e3]
+p <- ggplot(Events, aes(x=Date, y=numEvents, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Number of Events over Time", x = "", y = "Events (in thousands)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p)
+
+```
+
+Row
+----
+
+### Number of Extrinsics
+
+```{r Extrinsics}
+
+Extrinsics <- daily[!is.na(numExtrinsics), .(Date, Parachain, numExtrinsics)]
+Extrinsics[, numExtrinsics := numExtrinsics / 1e3]
+p <- ggplot(Extrinsics, aes(x=Date, y=numExtrinsics, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Number of Extrinsics over Time", x = "", y = "Extrinsics (in thousands)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p)
+
+```
+
+Row
+----
+
+### Number of EVM Transactions
+
+```{r TransactionsEVM}
+
+TransactionsEVM <- daily[!is.na(numTransactionsEVM), .(Date, Parachain, numTransactionsEVM)]
+TransactionsEVM[, numTransactionsEVM := numTransactionsEVM / 1e3]
+p <- ggplot(TransactionsEVM, aes(x=Date, y=numTransactionsEVM, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Number of EVM Transactions over Time", x = "", y = "EVM Transactions (in thousands)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p)
+
+```
+
+Row
+----
+
+### Fees in Native Tokens
+
+```{r fees}
+
+fees <- daily[!is.na(fees), .(Date, Parachain, fees)]
+fees[, fees := as.numeric(fees)]
+p <- ggplot(fees, aes(x=Date, y=fees, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Total Fees over Time", x = "", y = "Fees (in native tokens)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p)
+
+```
+
+Row
+----
+
+### Fees in Native Tokens (excluding Clover)
+
+```{r fees2}
+
+p2 <- ggplot(fees[Parachain != "Clover"], aes(x=Date, y=fees, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Total Fees over Time (excluding Clover)", x = "", y = "Fees (in native tokens)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p2)
+
+```
+
+Row
+----
+
+### Value of Incoming XCM Transfer in USD
+
+```{r valXCMTransferIncomingUSD}
+
+valXCMTransferIncomingUSD <- daily[!is.na(valXCMTransferIncomingUSD), .(Date, Parachain, valXCMTransferIncomingUSD)]
+valXCMTransferIncomingUSD[, valXCMTransferIncomingUSD := valXCMTransferIncomingUSD / 1e3]
+p <- ggplot(valXCMTransferIncomingUSD, aes(x=Date, y=valXCMTransferIncomingUSD, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Value Incoming XCM Transfer USD over Time", x = "", y = "Value Incoming XCM Transfer USD (in thousands)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p)
+
+```
+
+Row
+----
+
+### Value of Outgoing XCM Transfer in USD
+
+```{r valXCMTransferOutgoingUSD}
+
+valXCMTransferOutgoingUSD <- daily[!is.na(valXCMTransferOutgoingUSD), .(Date, Parachain, valXCMTransferOutgoingUSD)]
+valXCMTransferOutgoingUSD[, valXCMTransferOutgoingUSD := valXCMTransferOutgoingUSD / 1e3]
+p2 <- ggplot(valXCMTransferOutgoingUSD, aes(x=Date, y=valXCMTransferOutgoingUSD, col=Parachain)) +
+  geom_line() + 
+  theme(strip.background = element_blank(), strip.placement = "outside") +
+  labs(title="Value Outgoing XCM Transfer USD over Time", x = "", y = "Value Outgoing XCM Transfer USD (in thousands)") +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  theme(panel.background = element_rect(fill=bgcolor),
+        panel.border = element_blank())
+ggplotly(p2)
+
+```
+
+# Rawdata {.tabset}
+
+Row
+----
+
+```{r rawdata}
+
+datatable(daily, options = list(pageLength = 10))
+
+```
+
+
+Row
+----
+
+### Sources
+
+- All data obtained from the [Polkaholic API](https://docs.polkaholic.io/#introduction) using the [subscanr](https://github.com/rogerjbos/subscanr) project.  
+
+- Run date: `r today()`.

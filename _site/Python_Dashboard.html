@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-0.9.600">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>web_parity - Parachain Health (Python version)</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark ">
+      <div class="navbar-container container-fluid">
+      <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">web_parity</span>
+  </a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html">Home</a>
+  </li>  
+  <li class="dropdown-header">
+ about.qmd</li>
+  <li class="dropdown-header">
+ dashboard_top5_health.Rmd</li>
+  <li class="dropdown-header">
+ parachain_health_python.qmd</li>
+  <li class="dropdown-header">
+ parachain_health_slides.qmd</li>
+</ul>
+              <div id="quarto-search" class="" title="Search"></div>
+          </div> <!-- /navcollapse -->
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Parachain Health (Python version)</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    
+  </div>
+  
+
+</header>
+
+<section id="gathering-event-data-from-the-polkaholic-api" class="level4">
+<h4 class="anchored" data-anchor-id="gathering-event-data-from-the-polkaholic-api">Gathering event data from the Polkaholic API</h4>
+<p>This report uses the <a href="https://docs.polkaholic.io/#introduction">Polkaholic API</a> to extract 100,000 events over the past few days to analyze the health of the first five parachains to win Polkadot auctions: Acala, Moonbeam, Astar, Parallel, and Clover. We will look at simple measure such as average number of events per block and average time for block production to see how these parachains compare in terms of performance and utilization.</p>
+<details>
+<summary>Show hidden code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> display, Markdown</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> tabulate <span class="im">import</span> tabulate</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> datetime</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">'display.max_columns'</span>, <span class="va">None</span>)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> getPolkaholicEvents(chain, nobs <span class="op">=</span> <span class="dv">100</span>, module <span class="op">=</span> <span class="st">""</span>, call <span class="op">=</span> <span class="st">""</span>, startDate <span class="op">=</span> <span class="st">""</span>, endDate <span class="op">=</span> <span class="st">""</span>):</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  API_ENDPOINT <span class="op">=</span> <span class="ss">f"https://api.polkaholic.io/search/events?limit=</span><span class="sc">{</span>nobs<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  header <span class="op">=</span> {<span class="st">"Authorization"</span>: <span class="st">"32579f3ad8360ceff02f1e077384eec9"</span>}</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> module <span class="op">!=</span> <span class="st">""</span> <span class="kw">and</span> call <span class="op">!=</span> <span class="st">""</span>:</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> {<span class="st">"chainIdentifier"</span>: chain, <span class="st">"section"</span>: module, <span class="st">"method"</span>: call, <span class="st">"dateStart"</span>: startDate, <span class="st">"dateEnd"</span>: endDate}</span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a>  <span class="cf">elif</span> module <span class="op">!=</span> <span class="st">""</span> <span class="kw">and</span> call <span class="op">==</span> <span class="st">""</span>:</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> {<span class="st">"chainIdentifier"</span>: chain, <span class="st">"section"</span>: module, <span class="st">"dateStart"</span>: startDate, <span class="st">"dateEnd"</span>: endDate}</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="cf">else</span>: </span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> {<span class="st">"chainIdentifier"</span>: chain, <span class="st">"dateStart"</span>: startDate, <span class="st">"dateEnd"</span>: endDate}</span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>  r <span class="op">=</span> requests.post(url <span class="op">=</span> API_ENDPOINT, headers <span class="op">=</span> header, data <span class="op">=</span> data)</span>
+<span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a>  out <span class="op">=</span> pd.DataFrame(r.json())</span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>  out[<span class="st">'Date'</span>] <span class="op">=</span> pd.to_datetime(out[<span class="st">'blockTS'</span>],unit<span class="op">=</span><span class="st">'s'</span>)</span>
+<span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a>  <span class="cf">return</span> out</span>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Define the parameters</span></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>startDate <span class="op">=</span> (datetime.date.today() <span class="op">-</span> datetime.timedelta(days <span class="op">=</span> <span class="dv">14</span>)).strftime(<span class="st">"%Y-%m-</span><span class="sc">%d</span><span class="st">"</span>)</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a>endDate <span class="op">=</span> (datetime.date.today() <span class="op">-</span> datetime.timedelta(days <span class="op">=</span> <span class="dv">1</span>)).strftime(<span class="st">"%Y-%m-</span><span class="sc">%d</span><span class="st">"</span>)</span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>nobs <span class="op">=</span> <span class="dv">100000</span> <span class="co"># This (100,) is actually the max you can get in one call</span></span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a>module <span class="op">=</span> <span class="st">""</span></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>call <span class="op">=</span> <span class="st">""</span></span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Pull the data for each parachain, sleeping for 3 seconds in between chains (just in case)</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a>acala <span class="op">=</span> getPolkaholicEvents(chain <span class="op">=</span> <span class="st">"acala"</span>, nobs <span class="op">=</span> nobs, module <span class="op">=</span> module, call <span class="op">=</span> call, startDate <span class="op">=</span> startDate, endDate <span class="op">=</span> endDate)</span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a>time.sleep(<span class="dv">3</span>)</span>
+<span id="cb1-36"><a href="#cb1-36" aria-hidden="true" tabindex="-1"></a>astar <span class="op">=</span> getPolkaholicEvents(chain <span class="op">=</span> <span class="st">"astar"</span>, nobs <span class="op">=</span> nobs, module <span class="op">=</span> module, call <span class="op">=</span> call, startDate <span class="op">=</span> startDate, endDate <span class="op">=</span> endDate)</span>
+<span id="cb1-37"><a href="#cb1-37" aria-hidden="true" tabindex="-1"></a>time.sleep(<span class="dv">3</span>)</span>
+<span id="cb1-38"><a href="#cb1-38" aria-hidden="true" tabindex="-1"></a>clover <span class="op">=</span> getPolkaholicEvents(chain <span class="op">=</span> <span class="st">"clover"</span>, nobs <span class="op">=</span> nobs, module <span class="op">=</span> module, call <span class="op">=</span> call, startDate <span class="op">=</span> startDate, endDate <span class="op">=</span> endDate)</span>
+<span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a>time.sleep(<span class="dv">3</span>)</span>
+<span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>moonbeam <span class="op">=</span> getPolkaholicEvents(chain <span class="op">=</span> <span class="st">"moonbeam"</span>, nobs <span class="op">=</span> nobs, module <span class="op">=</span> module, call <span class="op">=</span> call, startDate <span class="op">=</span> startDate, endDate <span class="op">=</span> endDate)</span>
+<span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a>time.sleep(<span class="dv">3</span>)</span>
+<span id="cb1-42"><a href="#cb1-42" aria-hidden="true" tabindex="-1"></a>parallel <span class="op">=</span> getPolkaholicEvents(chain <span class="op">=</span> <span class="st">"parallel"</span>, nobs <span class="op">=</span> nobs, module <span class="op">=</span> module, call <span class="op">=</span> call, startDate <span class="op">=</span> startDate, endDate <span class="op">=</span> endDate)</span>
+<span id="cb1-43"><a href="#cb1-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-44"><a href="#cb1-44" aria-hidden="true" tabindex="-1"></a><span class="co"># Combine all the data into one DataFrame</span></span>
+<span id="cb1-45"><a href="#cb1-45" aria-hidden="true" tabindex="-1"></a>comb <span class="op">=</span> pd.concat([acala, astar, clover, moonbeam, parallel])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</section>
+<section id="summary-of-date-and-block-ranges" class="level4">
+<h4 class="anchored" data-anchor-id="summary-of-date-and-block-ranges">Summary of date and block ranges</h4>
+<p>Since we defined our data by the number of events, the date range and number of blocks will vary by parachain, as shown in the table below.</p>
+<details>
+<summary>Show hidden code</summary>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>summary <span class="op">=</span> pd.DataFrame([{<span class="st">'chainName'</span>: k,</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'minDate'</span>: v.Date.<span class="bu">min</span>(),</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'maxDate'</span>: v.Date.<span class="bu">max</span>(),</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'minBlock'</span>: v.blockNumber.<span class="bu">min</span>(),</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'maxBlock'</span>: v.blockNumber.<span class="bu">max</span>()}</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>                       <span class="cf">for</span> k,v <span class="kw">in</span> comb.groupby([<span class="st">'chainName'</span>])])</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>summary[<span class="st">'numBlocks'</span>] <span class="op">=</span> summary[<span class="st">'maxBlock'</span>] <span class="op">-</span> summary[<span class="st">'minBlock'</span>]</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>Markdown(tabulate(</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>  pd.DataFrame(summary),</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>  headers<span class="op">=</span>[<span class="st">"Parachain"</span>,<span class="st">"Earliest Date"</span>, <span class="st">"Latest Date"</span>, <span class="st">"Earliest Block"</span>, <span class="st">"Lastest Block"</span>, <span class="st">"Number of Blocks"</span>]</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th style="text-align: left;">Parachain</th>
+<th style="text-align: left;">Earliest Date</th>
+<th style="text-align: left;">Latest Date</th>
+<th style="text-align: right;">Earliest Block</th>
+<th style="text-align: right;">Lastest Block</th>
+<th style="text-align: right;">Number of Blocks</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">2022-09-09 23:41:00</td>
+<td style="text-align: left;">2022-09-13 23:59:07</td>
+<td style="text-align: right;">1826051</td>
+<td style="text-align: right;">1853903</td>
+<td style="text-align: right;">27852</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td style="text-align: left;">Astar</td>
+<td style="text-align: left;">2022-09-13 20:20:06</td>
+<td style="text-align: left;">2022-09-13 23:59:48</td>
+<td style="text-align: right;">1853040</td>
+<td style="text-align: right;">1854099</td>
+<td style="text-align: right;">1059</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td style="text-align: left;">Clover</td>
+<td style="text-align: left;">2022-09-07 22:17:54</td>
+<td style="text-align: left;">2022-09-13 23:59:48</td>
+<td style="text-align: right;">1729994</td>
+<td style="text-align: right;">1771314</td>
+<td style="text-align: right;">41320</td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td style="text-align: left;">Moonbeam</td>
+<td style="text-align: left;">2022-09-13 19:10:24</td>
+<td style="text-align: left;">2022-09-13 23:59:54</td>
+<td style="text-align: right;">1860823</td>
+<td style="text-align: right;">1862231</td>
+<td style="text-align: right;">1408</td>
+</tr>
+<tr class="odd">
+<td>4</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: left;">2022-09-12 14:21:30</td>
+<td style="text-align: left;">2022-09-13 23:59:54</td>
+<td style="text-align: right;">1792801</td>
+<td style="text-align: right;">1802581</td>
+<td style="text-align: right;">9780</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="number-of-events-by-module" class="level4">
+<h4 class="anchored" data-anchor-id="number-of-events-by-module">Number of Events by Module</h4>
+<p>While network utilization can be measured in many different ways, we will use the average number of events per block as a rough estimate for how much a parachain is being used, relative to other parachains. (This table has been moved to the end of the document due to its large size.)</p>
+</section>
+<section id="network-utilization" class="level4">
+<h4 class="anchored" data-anchor-id="network-utilization">Network utilization</h4>
+<p>While network utilization can be measured in many different ways, we will use the average number of events per block as a rough estimate for how much a parachain is being used, relative to other parachains.</p>
+<details>
+<summary>Show hidden code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>events_per_block <span class="op">=</span> comb.groupby([<span class="st">'chainName'</span>,<span class="st">'blockNumber'</span>])[<span class="st">'eventID'</span>].count()</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>avg_events_per_block <span class="op">=</span> events_per_block.groupby([<span class="st">'chainName'</span>]).mean().<span class="bu">round</span>(<span class="dv">1</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>Markdown(tabulate(</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  pd.DataFrame(avg_events_per_block),</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  headers<span class="op">=</span>[<span class="st">"Parachain"</span>,<span class="st">"Average number of events per block"</span>]</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<table class="table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Parachain</th>
+<th style="text-align: right;">Average number of events per block</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Acala</td>
+<td style="text-align: right;">3.6</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Astar</td>
+<td style="text-align: right;">94.3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Clover</td>
+<td style="text-align: right;">2.4</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Moonbeam</td>
+<td style="text-align: right;">71</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: right;">10.2</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="distribution-of-number-of-events-per-block" class="level4">
+<h4 class="anchored" data-anchor-id="distribution-of-number-of-events-per-block">Distribution of number of events per block</h4>
+<div class="cell" data-execution_count="4">
+<details>
+<summary>Show hidden code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>epb <span class="op">=</span> pd.DataFrame(events_per_block).reset_index()</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>epb <span class="op">=</span> epb.rename(columns<span class="op">=</span>{<span class="st">"chainName"</span>: <span class="st">"Parachain"</span>, <span class="st">"blockNumber"</span>: <span class="st">"Block"</span>, <span class="st">"eventID"</span>: <span class="st">"Events"</span>})</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># sns.violinplot(x=epb["Events"])</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>sns.boxplot(data<span class="op">=</span>epb, x<span class="op">=</span><span class="st">"Events"</span>, y<span class="op">=</span><span class="st">"Parachain"</span>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="Python_Dashboard_files/figure-html/cell-5-output-1.png" width="658" height="429"></p>
+</div>
+</div>
+</section>
+<section id="block-time-statistics" class="level4">
+<h4 class="anchored" data-anchor-id="block-time-statistics">Block Time Statistics</h4>
+<p>Max block time calculates how long it took, in seconds, to produce the slowest block and differs widely for the various parachains.</p>
+<details>
+<summary>Show hidden code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>block_duration <span class="op">=</span> comb.groupby([<span class="st">'chainName'</span>,<span class="st">'blockNumber'</span>])[<span class="st">'Date'</span>].<span class="bu">min</span>().diff()</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove NaT observations</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>block_duration <span class="op">=</span> block_duration.dropna()</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>mb <span class="op">=</span> pd.DataFrame(block_duration.dt.seconds).reset_index()</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>mb <span class="op">=</span> mb.rename(columns<span class="op">=</span>{<span class="st">"chainName"</span>: <span class="st">"Parachain"</span>, <span class="st">"blockNumber"</span>: <span class="st">"Block"</span>, <span class="st">"Date"</span>: <span class="st">"Seconds"</span>})</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># remove four errant observations with block time over 80,000 seconds??</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>mb <span class="op">=</span> mb[mb[<span class="st">'Seconds'</span>] <span class="op">&lt;</span> <span class="dv">999</span>]</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>max_block_time <span class="op">=</span> pd.DataFrame([{<span class="st">'Parachain'</span>: k,</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'minBlockTime'</span>: v.Seconds.<span class="bu">min</span>(),</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'maxBlockTime'</span>: v.Seconds.<span class="bu">max</span>(),</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'avgBlockTime'</span>: v.Seconds.mean().<span class="bu">round</span>(<span class="dv">1</span>)}</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>                       <span class="cf">for</span> k,v <span class="kw">in</span> mb.groupby([<span class="st">'Parachain'</span>])])</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>Markdown(tabulate(</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  pd.DataFrame(max_block_time),</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>  headers<span class="op">=</span>[<span class="st">"Parachain"</span>,<span class="st">"Min Block Time"</span>,<span class="st">"Max Block Time"</span>,<span class="st">"Average Block Time"</span>]</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th style="text-align: left;">Parachain</th>
+<th style="text-align: right;">Min Block Time</th>
+<th style="text-align: right;">Max Block Time</th>
+<th style="text-align: right;">Average Block Time</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">84</td>
+<td style="text-align: right;">12.5</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td style="text-align: left;">Astar</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">67</td>
+<td style="text-align: right;">12.4</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td style="text-align: left;">Clover</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">103</td>
+<td style="text-align: right;">12.7</td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td style="text-align: left;">Moonbeam</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">71</td>
+<td style="text-align: right;">12.3</td>
+</tr>
+<tr class="odd">
+<td>4</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">72</td>
+<td style="text-align: right;">12.4</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="slow-block-production" class="level4">
+<h4 class="anchored" data-anchor-id="slow-block-production">Slow Block Production</h4>
+<p>With the average block taking 12 seconds to produce, and very few observations of faster block production, we look at slow block production as a performance measure. This table shows the number of blocks that took over 13 seconds to produce.</p>
+<details>
+<summary>Show hidden code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Find slow block production</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>sb <span class="op">=</span> pd.DataFrame(block_duration.dt.seconds).reset_index()</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>sb <span class="op">=</span> sb.rename(columns<span class="op">=</span>{<span class="st">"chainName"</span>: <span class="st">"Parachain"</span>, <span class="st">"blockNumber"</span>: <span class="st">"Block"</span>, <span class="st">"Date"</span>: <span class="st">"Seconds"</span>})</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>slow_blocks <span class="op">=</span> pd.DataFrame([{<span class="st">'Parachain'</span>: k,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'N'</span>: v.Seconds.count(),</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'slow'</span>: v.Seconds[v.Seconds <span class="op">&gt;</span> <span class="dv">12</span>].count()}</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>                       <span class="cf">for</span> k,v <span class="kw">in</span> sb.groupby([<span class="st">'Parachain'</span>])])</span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>slow_blocks[<span class="st">'pct_slow'</span>] <span class="op">=</span> ((slow_blocks[<span class="st">'slow'</span>] <span class="op">/</span> slow_blocks[<span class="st">'N'</span>]) <span class="op">*</span> <span class="dv">100</span>).<span class="bu">round</span>(<span class="dv">1</span>)</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>Markdown(tabulate(</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  pd.DataFrame(slow_blocks),</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  headers<span class="op">=</span>[<span class="st">"Parachain"</span>,<span class="st">"Total Blocks"</span>,<span class="st">"Slow Blocks (over 13 seconds)"</span>,<span class="st">"Percent Slow (%)"</span>]</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th style="text-align: left;">Parachain</th>
+<th style="text-align: right;">Total Blocks</th>
+<th style="text-align: right;">Slow Blocks (over 13 seconds)</th>
+<th style="text-align: right;">Percent Slow (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: right;">27839</td>
+<td style="text-align: right;">4698</td>
+<td style="text-align: right;">16.9</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td style="text-align: left;">Astar</td>
+<td style="text-align: right;">1060</td>
+<td style="text-align: right;">164</td>
+<td style="text-align: right;">15.5</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td style="text-align: left;">Clover</td>
+<td style="text-align: right;">41307</td>
+<td style="text-align: right;">7980</td>
+<td style="text-align: right;">19.3</td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td style="text-align: left;">Moonbeam</td>
+<td style="text-align: right;">1408</td>
+<td style="text-align: right;">242</td>
+<td style="text-align: right;">17.2</td>
+</tr>
+<tr class="odd">
+<td>4</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: right;">9774</td>
+<td style="text-align: right;">1570</td>
+<td style="text-align: right;">16.1</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="distribution-of-block-duration-times" class="level4">
+<h4 class="anchored" data-anchor-id="distribution-of-block-duration-times">Distribution of block duration times</h4>
+<p>The following chart shows the distribution of block duration times for each parachain. To enhance the visual comparison we exclude block times greater than 30 seconds.</p>
+<div class="cell" data-execution_count="7">
+<details>
+<summary>Show hidden code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>bd <span class="op">=</span> pd.DataFrame(block_duration.dt.seconds).reset_index()</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>bd <span class="op">=</span> bd.rename(columns<span class="op">=</span>{<span class="st">"chainName"</span>: <span class="st">"Parachain"</span>, <span class="st">"blockNumber"</span>: <span class="st">"Block"</span>, <span class="st">"Date"</span>: <span class="st">"Seconds"</span>})</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>bd <span class="op">=</span> bd[bd[<span class="st">'Seconds'</span>] <span class="op">&gt;</span> <span class="dv">0</span>]</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>bd <span class="op">=</span> bd[bd[<span class="st">'Seconds'</span>] <span class="op">&lt;</span> <span class="dv">30</span>]</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># sns.violinplot(x=bdff["Seconds"])</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>sns.boxplot(data<span class="op">=</span>bd, x<span class="op">=</span><span class="st">"Seconds"</span>, y<span class="op">=</span><span class="st">"Parachain"</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<p><img src="Python_Dashboard_files/figure-html/cell-8-output-1.png" width="648" height="429"></p>
+</div>
+</div>
+</section>
+<section id="number-of-events-by-module-1" class="level4">
+<h4 class="anchored" data-anchor-id="number-of-events-by-module-1">Number of Events by Module</h4>
+<details>
+<summary>Show hidden code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>sb <span class="op">=</span> pd.DataFrame(block_duration.dt.seconds).reset_index()</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>sb <span class="op">=</span> sb.rename(columns<span class="op">=</span>{<span class="st">"chainName"</span>: <span class="st">"Parachain"</span>, <span class="st">"blockNumber"</span>: <span class="st">"Block"</span>, <span class="st">"Date"</span>: <span class="st">"Seconds"</span>})</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>slow_blocks <span class="op">=</span> pd.DataFrame([{<span class="st">'Parachain'</span>: k,</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'N'</span>: v.Seconds.count(),</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'slow'</span>: v.Seconds[v.Seconds <span class="op">&gt;</span> <span class="dv">12</span>].count()}</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>                       <span class="cf">for</span> k,v <span class="kw">in</span> sb.groupby([<span class="st">'Parachain'</span>])])</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>count_by_chain <span class="op">=</span> comb.groupby([<span class="st">'chainName'</span>])[<span class="st">'eventID'</span>].count()</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>count_by_chain <span class="op">=</span> pd.DataFrame(count_by_chain).reset_index().rename(columns<span class="op">=</span>{<span class="st">"chainName"</span>: <span class="st">"Parachain"</span>, <span class="st">"eventID"</span>: <span class="st">"N"</span>})</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>count_by_section <span class="op">=</span> comb.groupby([<span class="st">'chainName'</span>,<span class="st">'section'</span>])[<span class="st">'eventID'</span>].count()</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>count_by_section <span class="op">=</span> pd.DataFrame(count_by_section).reset_index().rename(columns<span class="op">=</span>{<span class="st">"chainName"</span>: <span class="st">"Parachain"</span>, <span class="st">"section"</span>: <span class="st">"Module"</span>, <span class="st">"eventID"</span>: <span class="st">"Events"</span>})</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>count_by_section <span class="op">=</span> count_by_section.merge(count_by_chain, on <span class="op">=</span> <span class="st">"Parachain"</span>)</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>count_by_section[<span class="st">'Percent'</span>] <span class="op">=</span> (count_by_section[<span class="st">'Events'</span>] <span class="op">/</span> count_by_section[<span class="st">'N'</span>]) <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>Markdown(tabulate(</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>  pd.DataFrame(count_by_section),</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>  headers<span class="op">=</span>[<span class="st">"Parachain"</span>,<span class="st">"Module"</span>,<span class="st">"Events"</span>,<span class="st">"Total"</span>,<span class="st">"Percent"</span>]</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<table class="table">
+<thead>
+<tr class="header">
+<th></th>
+<th style="text-align: left;">Parachain</th>
+<th style="text-align: left;">Module</th>
+<th style="text-align: right;">Events</th>
+<th style="text-align: right;">Total</th>
+<th style="text-align: right;">Percent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>0</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">balances</td>
+<td style="text-align: right;">17954</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">17.954</td>
+</tr>
+<tr class="even">
+<td>1</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">currencies</td>
+<td style="text-align: right;">119</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.119</td>
+</tr>
+<tr class="odd">
+<td>2</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">democracy</td>
+<td style="text-align: right;">43</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.043</td>
+</tr>
+<tr class="even">
+<td>3</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">dmpQueue</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.007</td>
+</tr>
+<tr class="odd">
+<td>4</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">homa</td>
+<td style="text-align: right;">30</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.03</td>
+</tr>
+<tr class="even">
+<td>5</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">multisig</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.006</td>
+</tr>
+<tr class="odd">
+<td>6</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">nft</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.002</td>
+</tr>
+<tr class="even">
+<td>7</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">parachainSystem</td>
+<td style="text-align: right;">14</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.014</td>
+</tr>
+<tr class="odd">
+<td>8</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">proxy</td>
+<td style="text-align: right;">3727</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">3.727</td>
+</tr>
+<tr class="even">
+<td>9</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">scheduler</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.002</td>
+</tr>
+<tr class="odd">
+<td>10</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">session</td>
+<td style="text-align: right;">49</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.049</td>
+</tr>
+<tr class="even">
+<td>11</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">stableAsset</td>
+<td style="text-align: right;">19</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.019</td>
+</tr>
+<tr class="odd">
+<td>12</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">system</td>
+<td style="text-align: right;">63922</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">63.922</td>
+</tr>
+<tr class="even">
+<td>13</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">tokens</td>
+<td style="text-align: right;">271</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.271</td>
+</tr>
+<tr class="odd">
+<td>14</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">transactionPause</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.008</td>
+</tr>
+<tr class="even">
+<td>15</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">transactionPayment</td>
+<td style="text-align: right;">6547</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">6.547</td>
+</tr>
+<tr class="odd">
+<td>16</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">treasury</td>
+<td style="text-align: right;">6594</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">6.594</td>
+</tr>
+<tr class="even">
+<td>17</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">utility</td>
+<td style="text-align: right;">234</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.234</td>
+</tr>
+<tr class="odd">
+<td>18</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">vesting</td>
+<td style="text-align: right;">406</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.406</td>
+</tr>
+<tr class="even">
+<td>19</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">xTokens</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.002</td>
+</tr>
+<tr class="odd">
+<td>20</td>
+<td style="text-align: left;">Acala</td>
+<td style="text-align: left;">xcmpQueue</td>
+<td style="text-align: right;">44</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.044</td>
+</tr>
+<tr class="even">
+<td>21</td>
+<td style="text-align: left;">Astar</td>
+<td style="text-align: left;">assets</td>
+<td style="text-align: right;">470</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.47</td>
+</tr>
+<tr class="odd">
+<td>22</td>
+<td style="text-align: left;">Astar</td>
+<td style="text-align: left;">balances</td>
+<td style="text-align: right;">41220</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">41.22</td>
+</tr>
+<tr class="even">
+<td>23</td>
+<td style="text-align: left;">Astar</td>
+<td style="text-align: left;">dappsStaking</td>
+<td style="text-align: right;">4455</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">4.455</td>
+</tr>
+<tr class="odd">
+<td>24</td>
+<td style="text-align: left;">Astar</td>
+<td style="text-align: left;">dmpQueue</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.004</td>
+</tr>
+<tr class="even">
+<td>25</td>
+<td style="text-align: left;">Astar</td>
+<td style="text-align: left;">ethereum</td>
+<td style="text-align: right;">9389</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">9.389</td>
+</tr>
+<tr class="odd">
+<td>26</td>
+<td style="text-align: left;">Astar</td>
+<td style="text-align: left;">evm</td>
+<td style="text-align: right;">28029</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">28.029</td>
+</tr>
+<tr class="even">
+<td>27</td>
+<td style="text-align: left;">Astar</td>
+<td style="text-align: left;">parachainSystem</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.008</td>
+</tr>
+<tr class="odd">
+<td>28</td>
+<td style="text-align: left;">Astar</td>
+<td style="text-align: left;">polkadotXcm</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.001</td>
+</tr>
+<tr class="even">
+<td>29</td>
+<td style="text-align: left;">Astar</td>
+<td style="text-align: left;">session</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.005</td>
+</tr>
+<tr class="odd">
+<td>30</td>
+<td style="text-align: left;">Astar</td>
+<td style="text-align: left;">system</td>
+<td style="text-align: right;">13038</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">13.038</td>
+</tr>
+<tr class="even">
+<td>31</td>
+<td style="text-align: left;">Astar</td>
+<td style="text-align: left;">transactionPayment</td>
+<td style="text-align: right;">882</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.882</td>
+</tr>
+<tr class="odd">
+<td>32</td>
+<td style="text-align: left;">Astar</td>
+<td style="text-align: left;">utility</td>
+<td style="text-align: right;">2473</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">2.473</td>
+</tr>
+<tr class="even">
+<td>33</td>
+<td style="text-align: left;">Astar</td>
+<td style="text-align: left;">vesting</td>
+<td style="text-align: right;">22</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.022</td>
+</tr>
+<tr class="odd">
+<td>34</td>
+<td style="text-align: left;">Astar</td>
+<td style="text-align: left;">xcmpQueue</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.004</td>
+</tr>
+<tr class="even">
+<td>35</td>
+<td style="text-align: left;">Clover</td>
+<td style="text-align: left;">assetConfig</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.002</td>
+</tr>
+<tr class="odd">
+<td>36</td>
+<td style="text-align: left;">Clover</td>
+<td style="text-align: left;">assets</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.003</td>
+</tr>
+<tr class="even">
+<td>37</td>
+<td style="text-align: left;">Clover</td>
+<td style="text-align: left;">balances</td>
+<td style="text-align: right;">4563</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">4.563</td>
+</tr>
+<tr class="odd">
+<td>38</td>
+<td style="text-align: left;">Clover</td>
+<td style="text-align: left;">council</td>
+<td style="text-align: right;">20</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.02</td>
+</tr>
+<tr class="even">
+<td>39</td>
+<td style="text-align: left;">Clover</td>
+<td style="text-align: left;">democracy</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.012</td>
+</tr>
+<tr class="odd">
+<td>40</td>
+<td style="text-align: left;">Clover</td>
+<td style="text-align: left;">dmpQueue</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.003</td>
+</tr>
+<tr class="even">
+<td>41</td>
+<td style="text-align: left;">Clover</td>
+<td style="text-align: left;">electionsPhragmen</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.001</td>
+</tr>
+<tr class="odd">
+<td>42</td>
+<td style="text-align: left;">Clover</td>
+<td style="text-align: left;">ethereum</td>
+<td style="text-align: right;">2096</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">2.096</td>
+</tr>
+<tr class="even">
+<td>43</td>
+<td style="text-align: left;">Clover</td>
+<td style="text-align: left;">evm</td>
+<td style="text-align: right;">2106</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">2.106</td>
+</tr>
+<tr class="odd">
+<td>44</td>
+<td style="text-align: left;">Clover</td>
+<td style="text-align: left;">parachainSystem</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.007</td>
+</tr>
+<tr class="even">
+<td>45</td>
+<td style="text-align: left;">Clover</td>
+<td style="text-align: left;">polkadotXcm</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.006</td>
+</tr>
+<tr class="odd">
+<td>46</td>
+<td style="text-align: left;">Clover</td>
+<td style="text-align: left;">scheduler</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.004</td>
+</tr>
+<tr class="even">
+<td>47</td>
+<td style="text-align: left;">Clover</td>
+<td style="text-align: left;">session</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.012</td>
+</tr>
+<tr class="odd">
+<td>48</td>
+<td style="text-align: left;">Clover</td>
+<td style="text-align: left;">sudo</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.007</td>
+</tr>
+<tr class="even">
+<td>49</td>
+<td style="text-align: left;">Clover</td>
+<td style="text-align: left;">system</td>
+<td style="text-align: right;">91105</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">91.105</td>
+</tr>
+<tr class="odd">
+<td>50</td>
+<td style="text-align: left;">Clover</td>
+<td style="text-align: left;">technicalCommittee</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.016</td>
+</tr>
+<tr class="even">
+<td>51</td>
+<td style="text-align: left;">Clover</td>
+<td style="text-align: left;">treasury</td>
+<td style="text-align: right;">24</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.024</td>
+</tr>
+<tr class="odd">
+<td>52</td>
+<td style="text-align: left;">Clover</td>
+<td style="text-align: left;">utility</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.013</td>
+</tr>
+<tr class="even">
+<td>53</td>
+<td style="text-align: left;">Moonbeam</td>
+<td style="text-align: left;">assets</td>
+<td style="text-align: right;">629</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.629</td>
+</tr>
+<tr class="odd">
+<td>54</td>
+<td style="text-align: left;">Moonbeam</td>
+<td style="text-align: left;">balances</td>
+<td style="text-align: right;">35719</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">35.719</td>
+</tr>
+<tr class="even">
+<td>55</td>
+<td style="text-align: left;">Moonbeam</td>
+<td style="text-align: left;">crowdloanRewards</td>
+<td style="text-align: right;">129</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.129</td>
+</tr>
+<tr class="odd">
+<td>56</td>
+<td style="text-align: left;">Moonbeam</td>
+<td style="text-align: left;">democracy</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.007</td>
+</tr>
+<tr class="even">
+<td>57</td>
+<td style="text-align: left;">Moonbeam</td>
+<td style="text-align: left;">dmpQueue</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.006</td>
+</tr>
+<tr class="odd">
+<td>58</td>
+<td style="text-align: left;">Moonbeam</td>
+<td style="text-align: left;">ethereum</td>
+<td style="text-align: right;">8560</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">8.56</td>
+</tr>
+<tr class="even">
+<td>59</td>
+<td style="text-align: left;">Moonbeam</td>
+<td style="text-align: left;">evm</td>
+<td style="text-align: right;">23795</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">23.795</td>
+</tr>
+<tr class="odd">
+<td>60</td>
+<td style="text-align: left;">Moonbeam</td>
+<td style="text-align: left;">localAssets</td>
+<td style="text-align: right;">364</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.364</td>
+</tr>
+<tr class="even">
+<td>61</td>
+<td style="text-align: left;">Moonbeam</td>
+<td style="text-align: left;">parachainStaking</td>
+<td style="text-align: right;">325</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.325</td>
+</tr>
+<tr class="odd">
+<td>62</td>
+<td style="text-align: left;">Moonbeam</td>
+<td style="text-align: left;">parachainSystem</td>
+<td style="text-align: right;">12</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.012</td>
+</tr>
+<tr class="even">
+<td>63</td>
+<td style="text-align: left;">Moonbeam</td>
+<td style="text-align: left;">system</td>
+<td style="text-align: right;">14601</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">14.601</td>
+</tr>
+<tr class="odd">
+<td>64</td>
+<td style="text-align: left;">Moonbeam</td>
+<td style="text-align: left;">treasury</td>
+<td style="text-align: right;">15802</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">15.802</td>
+</tr>
+<tr class="even">
+<td>65</td>
+<td style="text-align: left;">Moonbeam</td>
+<td style="text-align: left;">xTokens</td>
+<td style="text-align: right;">18</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.018</td>
+</tr>
+<tr class="odd">
+<td>66</td>
+<td style="text-align: left;">Moonbeam</td>
+<td style="text-align: left;">xcmTransactor</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.004</td>
+</tr>
+<tr class="even">
+<td>67</td>
+<td style="text-align: left;">Moonbeam</td>
+<td style="text-align: left;">xcmpQueue</td>
+<td style="text-align: right;">29</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.029</td>
+</tr>
+<tr class="odd">
+<td>68</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: left;">amm</td>
+<td style="text-align: right;">1142</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">1.142</td>
+</tr>
+<tr class="even">
+<td>69</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: left;">ammRoute</td>
+<td style="text-align: right;">818</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.818</td>
+</tr>
+<tr class="odd">
+<td>70</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: left;">assets</td>
+<td style="text-align: right;">3151</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">3.151</td>
+</tr>
+<tr class="even">
+<td>71</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: left;">balances</td>
+<td style="text-align: right;">33390</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">33.39</td>
+</tr>
+<tr class="odd">
+<td>72</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: left;">crowdloans</td>
+<td style="text-align: right;">24</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.024</td>
+</tr>
+<tr class="even">
+<td>73</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: left;">dmpQueue</td>
+<td style="text-align: right;">205</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.205</td>
+</tr>
+<tr class="odd">
+<td>74</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: left;">liquidStaking</td>
+<td style="text-align: right;">46</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.046</td>
+</tr>
+<tr class="even">
+<td>75</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: left;">loans</td>
+<td style="text-align: right;">14683</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">14.683</td>
+</tr>
+<tr class="odd">
+<td>76</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: left;">oracle</td>
+<td style="text-align: right;">5765</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">5.765</td>
+</tr>
+<tr class="even">
+<td>77</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: left;">parachainSystem</td>
+<td style="text-align: right;">404</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.404</td>
+</tr>
+<tr class="odd">
+<td>78</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: left;">polkadotXcm</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.009</td>
+</tr>
+<tr class="even">
+<td>79</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: left;">session</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.005</td>
+</tr>
+<tr class="odd">
+<td>80</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: left;">streaming</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.005</td>
+</tr>
+<tr class="even">
+<td>81</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: left;">system</td>
+<td style="text-align: right;">30234</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">30.234</td>
+</tr>
+<tr class="odd">
+<td>82</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: left;">transactionPayment</td>
+<td style="text-align: right;">9011</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">9.011</td>
+</tr>
+<tr class="even">
+<td>83</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: left;">utility</td>
+<td style="text-align: right;">575</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.575</td>
+</tr>
+<tr class="odd">
+<td>84</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: left;">vesting</td>
+<td style="text-align: right;">366</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.366</td>
+</tr>
+<tr class="even">
+<td>85</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: left;">xTokens</td>
+<td style="text-align: right;">121</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.121</td>
+</tr>
+<tr class="odd">
+<td>86</td>
+<td style="text-align: left;">Parallel</td>
+<td style="text-align: left;">xcmpQueue</td>
+<td style="text-align: right;">46</td>
+<td style="text-align: right;">100000</td>
+<td style="text-align: right;">0.046</td>
+</tr>
+</tbody>
+</table>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

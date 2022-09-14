@@ -1,0 +1,21 @@
+project:
+  type: website
+
+website:
+  title: "Parachain Health"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - R_Dashboard.Rmd
+      - Python_Dashboard.qmd
+      - Slides.qmd
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+
+editor: visual
+

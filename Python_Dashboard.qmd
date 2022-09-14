@@ -1,0 +1,231 @@
+---
+title: "Parachain Health (Python version)"
+---
+
+#### Gathering event data from the Polkaholic API
+
+This report uses the [Polkaholic API](https://docs.polkaholic.io/#introduction) to extract 100,000 events over the past few days to analyze the health of the first five parachains to win Polkadot auctions: Acala, Moonbeam, Astar, Parallel, and Clover. We will look at simple measure such as average number of events per block and average time for block production to see how these parachains compare in terms of performance and utilization.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Show hidden code"
+
+import pandas as pd
+from IPython.display import display, Markdown
+from tabulate import tabulate
+import time
+import datetime
+import requests
+import json
+import seaborn as sns
+import matplotlib.pyplot as plt
+pd.set_option('display.max_columns', None)
+
+def getPolkaholicEvents(chain, nobs = 100, module = "", call = "", startDate = "", endDate = ""):
+  API_ENDPOINT = f"https://api.polkaholic.io/search/events?limit={nobs}"
+  header = {"Authorization": "32579f3ad8360ceff02f1e077384eec9"}
+  if module != "" and call != "":
+    data = {"chainIdentifier": chain, "section": module, "method": call, "dateStart": startDate, "dateEnd": endDate}
+  elif module != "" and call == "":
+    data = {"chainIdentifier": chain, "section": module, "dateStart": startDate, "dateEnd": endDate}
+  else: 
+    data = {"chainIdentifier": chain, "dateStart": startDate, "dateEnd": endDate}
+  r = requests.post(url = API_ENDPOINT, headers = header, data = data)
+  out = pd.DataFrame(r.json())
+  out['Date'] = pd.to_datetime(out['blockTS'],unit='s')
+  return out
+
+# Define the parameters
+startDate = (datetime.date.today() - datetime.timedelta(days = 14)).strftime("%Y-%m-%d")
+endDate = (datetime.date.today() - datetime.timedelta(days = 1)).strftime("%Y-%m-%d")
+nobs = 100000 # This (100,) is actually the max you can get in one call
+module = ""
+call = ""
+
+# Pull the data for each parachain, sleeping for 3 seconds in between chains (just in case)
+acala = getPolkaholicEvents(chain = "acala", nobs = nobs, module = module, call = call, startDate = startDate, endDate = endDate)
+time.sleep(3)
+astar = getPolkaholicEvents(chain = "astar", nobs = nobs, module = module, call = call, startDate = startDate, endDate = endDate)
+time.sleep(3)
+clover = getPolkaholicEvents(chain = "clover", nobs = nobs, module = module, call = call, startDate = startDate, endDate = endDate)
+time.sleep(3)
+moonbeam = getPolkaholicEvents(chain = "moonbeam", nobs = nobs, module = module, call = call, startDate = startDate, endDate = endDate)
+time.sleep(3)
+parallel = getPolkaholicEvents(chain = "parallel", nobs = nobs, module = module, call = call, startDate = startDate, endDate = endDate)
+
+# Combine all the data into one DataFrame
+comb = pd.concat([acala, astar, clover, moonbeam, parallel])
+
+```
+
+#### Summary of date and block ranges
+
+Since we defined our data by the number of events, the date range and number of blocks will vary by parachain, as shown in the table below.
+
+```{python}
+#| label: tbl-summary
+#| tbl-cap: Summary
+#| code-fold: true
+#| code-summary: "Show hidden code"
+
+summary = pd.DataFrame([{'chainName': k,
+                        'minDate': v.Date.min(),
+                        'maxDate': v.Date.max(),
+                        'minBlock': v.blockNumber.min(),
+                        'maxBlock': v.blockNumber.max()}
+                       for k,v in comb.groupby(['chainName'])])
+summary['numBlocks'] = summary['maxBlock'] - summary['minBlock']
+
+Markdown(tabulate(
+  pd.DataFrame(summary),
+  headers=["Parachain","Earliest Date", "Latest Date", "Earliest Block", "Lastest Block", "Number of Blocks"]
+))
+
+```
+
+#### Number of Events by Module
+
+While network utilization can be measured in many different ways, we will use the average number of events per block as a rough estimate for how much a parachain is being used, relative to other parachains. (This table has been moved to the end of the document due to its large size.)
+
+#### Network utilization
+
+While network utilization can be measured in many different ways, we will use the average number of events per block as a rough estimate for how much a parachain is being used, relative to other parachains.
+
+```{python}
+#| label: tbl-avg-events-per-block
+#| tbl-cap: Average Events Per Block
+#| code-fold: true
+#| code-summary: "Show hidden code"
+
+events_per_block = comb.groupby(['chainName','blockNumber'])['eventID'].count()
+avg_events_per_block = events_per_block.groupby(['chainName']).mean().round(1)
+
+Markdown(tabulate(
+  pd.DataFrame(avg_events_per_block),
+  headers=["Parachain","Average number of events per block"]
+))
+
+```
+
+#### Distribution of number of events per block
+
+```{python}
+#| code-fold: true
+#| code-summary: "Show hidden code"
+
+epb = pd.DataFrame(events_per_block).reset_index()
+epb = epb.rename(columns={"chainName": "Parachain", "blockNumber": "Block", "eventID": "Events"})
+# sns.violinplot(x=epb["Events"])
+sns.boxplot(data=epb, x="Events", y="Parachain")
+plt.show()
+
+```
+
+#### Block Time Statistics
+
+Max block time calculates how long it took, in seconds, to produce the slowest block and differs widely for the various parachains.
+
+```{python}
+#| label: tbl-max-block-time
+#| tbl-cap: Max Block Time
+#| code-fold: true
+#| code-summary: "Show hidden code"
+
+block_duration = comb.groupby(['chainName','blockNumber'])['Date'].min().diff()
+# Remove NaT observations
+block_duration = block_duration.dropna()
+
+mb = pd.DataFrame(block_duration.dt.seconds).reset_index()
+mb = mb.rename(columns={"chainName": "Parachain", "blockNumber": "Block", "Date": "Seconds"})
+# remove four errant observations with block time over 80,000 seconds??
+mb = mb[mb['Seconds'] < 999]
+
+max_block_time = pd.DataFrame([{'Parachain': k,
+                        'minBlockTime': v.Seconds.min(),
+                        'maxBlockTime': v.Seconds.max(),
+                        'avgBlockTime': v.Seconds.mean().round(1)}
+                       for k,v in mb.groupby(['Parachain'])])
+
+Markdown(tabulate(
+  pd.DataFrame(max_block_time),
+  headers=["Parachain","Min Block Time","Max Block Time","Average Block Time"]
+))
+
+```
+
+#### Slow Block Production
+
+With the average block taking 12 seconds to produce, and very few observations of faster block production, we look at slow block production as a performance measure. This table shows the number of blocks that took over 13 seconds to produce.
+
+```{python}
+#| label: tbl-slow-blocks
+#| tbl-cap: Slow Block Production
+#| code-fold: true
+#| code-summary: "Show hidden code"
+
+# Find slow block production
+sb = pd.DataFrame(block_duration.dt.seconds).reset_index()
+sb = sb.rename(columns={"chainName": "Parachain", "blockNumber": "Block", "Date": "Seconds"})
+
+slow_blocks = pd.DataFrame([{'Parachain': k,
+                        'N': v.Seconds.count(),
+                        'slow': v.Seconds[v.Seconds > 12].count()}
+                       for k,v in sb.groupby(['Parachain'])])
+slow_blocks['pct_slow'] = ((slow_blocks['slow'] / slow_blocks['N']) * 100).round(1)
+
+Markdown(tabulate(
+  pd.DataFrame(slow_blocks),
+  headers=["Parachain","Total Blocks","Slow Blocks (over 13 seconds)","Percent Slow (%)"]
+))
+
+```
+
+#### Distribution of block duration times
+
+The following chart shows the distribution of block duration times for each parachain. To enhance the visual comparison we exclude block times greater than 30 seconds.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Show hidden code"
+
+bd = pd.DataFrame(block_duration.dt.seconds).reset_index()
+bd = bd.rename(columns={"chainName": "Parachain", "blockNumber": "Block", "Date": "Seconds"})
+bd = bd[bd['Seconds'] > 0]
+bd = bd[bd['Seconds'] < 30]
+# sns.violinplot(x=bdff["Seconds"])
+sns.boxplot(data=bd, x="Seconds", y="Parachain")
+plt.show()
+
+```
+
+#### Number of Events by Module
+
+```{python}
+#| label: tbl-count-by-section
+#| tbl-cap: Number of Events by Module
+#| code-fold: true
+#| code-summary: "Show hidden code"
+
+
+sb = pd.DataFrame(block_duration.dt.seconds).reset_index()
+sb = sb.rename(columns={"chainName": "Parachain", "blockNumber": "Block", "Date": "Seconds"})
+
+slow_blocks = pd.DataFrame([{'Parachain': k,
+                        'N': v.Seconds.count(),
+                        'slow': v.Seconds[v.Seconds > 12].count()}
+                       for k,v in sb.groupby(['Parachain'])])
+
+count_by_chain = comb.groupby(['chainName'])['eventID'].count()
+count_by_chain = pd.DataFrame(count_by_chain).reset_index().rename(columns={"chainName": "Parachain", "eventID": "N"})
+
+count_by_section = comb.groupby(['chainName','section'])['eventID'].count()
+count_by_section = pd.DataFrame(count_by_section).reset_index().rename(columns={"chainName": "Parachain", "section": "Module", "eventID": "Events"})
+count_by_section = count_by_section.merge(count_by_chain, on = "Parachain")
+count_by_section['Percent'] = (count_by_section['Events'] / count_by_section['N']) * 100
+
+Markdown(tabulate(
+  pd.DataFrame(count_by_section),
+  headers=["Parachain","Module","Events","Total","Percent"]
+))
+
+```
