@@ -9,10 +9,6 @@ Brotli==1.0.9
 certifi==2021.10.8
 cffi==1.15.0
 colorama==0.4.5
-dash==2.6.1
-dash-core-components==2.0.0
-dash-html-components==2.0.0
-dash-table==5.0.0
 dbt-core==1.2.1
 dbt-extractor==0.4.1
 debugpy==1.6.0
