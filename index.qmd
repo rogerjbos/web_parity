@@ -9,4 +9,4 @@ The R dashboard, Python dashboard, and slide presentation can be accessed from t
 
 There is also a Shiny app which can be accessed [here](https://sagepoint.shinyapps.io/parachain_health/).
 
-The source code for this website, which has the code for all the dashboards, is available on [Github](https://github.com/rogerjbos/web_parity).
+The source code for this website, which has the code for both dashboards, is available on [Github](https://github.com/rogerjbos/web_parity).
