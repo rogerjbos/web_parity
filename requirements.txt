@@ -1,5 +1,4 @@
 agate==1.6.3
-aiohttp==3.8.1
 aioredis==2.0.1
 aiosignal==1.2.0
 analytics-python==1.4.0
