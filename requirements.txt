@@ -9,7 +9,8 @@ Brotli==1.0.9
 certifi==2021.10.8
 cffi==1.15.0
 colorama==0.4.5
-jupyter==1.0.0
+jupyter
+nbformat
 numpy
 pandas
 plotly
