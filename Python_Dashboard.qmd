@@ -19,11 +19,14 @@ import requests
 import json
 import seaborn as sns
 import matplotlib.pyplot as plt
+import os
+POLKAHOLIC_API_KEY = os.environ['POLKAHOLIC_API_KEY']
+
 pd.set_option('display.max_columns', None)
 
 def getPolkaholicEvents(chain, nobs = 100, module = "", call = "", startDate = "", endDate = ""):
   API_ENDPOINT = f"https://api.polkaholic.io/search/events?limit={nobs}"
-  header = {"Authorization": process.env.POLKAHOLIC_API_KEY}
+  header = {"Authorization": POLKAHOLIC_API_KEY}
   if module != "" and call != "":
     data = {"chainIdentifier": chain, "section": module, "method": call, "dateStart": startDate, "dateEnd": endDate}
   elif module != "" and call == "":
