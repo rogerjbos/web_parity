@@ -23,7 +23,7 @@ pd.set_option('display.max_columns', None)
 
 def getPolkaholicEvents(chain, nobs = 100, module = "", call = "", startDate = "", endDate = ""):
   API_ENDPOINT = f"https://api.polkaholic.io/search/events?limit={nobs}"
-  header = {"Authorization": "32579f3ad8360ceff02f1e077384eec9"}
+  header = {"Authorization": process.env.POLKAHOLIC_API_KEY}
   if module != "" and call != "":
     data = {"chainIdentifier": chain, "section": module, "method": call, "dateStart": startDate, "dateEnd": endDate}
   elif module != "" and call == "":
