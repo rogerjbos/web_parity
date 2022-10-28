@@ -2,7 +2,7 @@ project:
   type: website
 
 website:
-  title: "Parachain Health Test11"
+  title: "Parachain Health Test12"
   navbar:
     left:
       - href: index.qmd
